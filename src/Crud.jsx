@@ -8,28 +8,30 @@ const Crud = () => {
     }
 
     const [input, setInput] = useState(initialData)
-    const [lists, setLists] = useState([])
+    const [lists, setLists] = useState(() => {
+        return JSON.parse(localStorage.getItem('users')) || [];
+    })
     const [errors, setErrors] = useState({})
-    // const [isEdit, setIsEdit] = useState(false)
+    const [edit, setEdit] = useState(false)
+    const [editIndex, setEditIndex] = useState(null)
+    const [button, setButton] = useState(false)
 
-    // useEffect(()=>{
-    //     if(isEdit){
-    //         setInput(lists)
-    //     }
-    // })
+    useEffect(() => {
+        localStorage.setItem('users', JSON.stringify(lists));
+        console.log('Done');
+    }, [lists])
 
     const handleChange = (e) => {
         setInput({ ...input, [e.target.name]: e.target.value })
-
     }
 
-    const checkValidate = (input) =>{
+    const checkValidate = (input) => {
         const errors = {}
 
-        if(input.name.trim() === ""){
+        if (input.name.trim() === "") {
             errors.name = "Invalid Name"
         }
-        if(input.email == ""){
+        if (input.email == "") {
             errors.email = "Invalid Email"
         }
         return errors
@@ -40,24 +42,33 @@ const Crud = () => {
         temp.splice(id, 1)
         setLists(temp)
     }
-    const handleEdit = (id) => {
-        const temp = [...lists]
-        setInput(temp[id])
-        setLists(input)
-        // setIsEdit(true)
-    }
 
+    const handleEdit = (id) => {
+        setEdit(true)
+        const editData = [...lists]
+        editData.splice(id, 1)
+        setInput(lists[id])
+        setEditIndex(id)
+        setButton(true)
+    }
+   
     const handleSubmit = (e) => {
         e.preventDefault()
-        
+
         const validate = checkValidate(input)
         setErrors(validate)
         const check = Object.keys(validate)
-        if(check.length < 1){
+        if (check.length < 1) {
             setLists([...lists, input])
             setInput(initialData)
         }
-        
+        if(edit){
+            lists[editIndex] = input
+            setLists(lists)
+            localStorage.setItem('users', JSON.stringify(lists))
+            setEdit(false)
+        }
+        setButton(false)
     }
 
     return (
@@ -68,7 +79,7 @@ const Crud = () => {
                     <div className='text-danger'>{errors.name}</div>
                     <input type="email" name="email" value={input.email} id="" placeholder='Email-ID' className='form-control my-3' onChange={handleChange} />
                     <div className='text-danger'>{errors.email}</div>
-                    <button type='submit' className='btn btn-info'>Submit</button>
+                    <button type='submit' className='btn btn-info'>{button ? "Update" : "Add"}</button>
                 </form>
             </div>
 
